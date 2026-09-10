@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Localyze</title>
+<style>
+  body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px; }
+  label { display: block; margin-top: 12px; font-size: 14px; }
+  input, select { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; }
+  button { margin-top: 16px; padding: 10px 16px; width: 100%; }
+  .lead { border: 1px solid #ccc; padding: 12px; margin-top: 12px; border-radius: 6px; }
+  .lead h4 { margin: 0 0 4px 0; }
+  .lead p { margin: 4px 0; font-size: 14px; }
+  #status { margin-top: 16px; font-size: 14px; color: #555; }
+</style>
+</head>
+<body>
+  <h2>Lead Finder</h2>
+  <form id="scanForm">
+    <label>City<input type="text" id="city" placeholder="Buea" required></label>
+    <label>OSM Key
+      <select id="osmKey" required>
+        <option value="tourism">tourism (hotel, guest_house)</option>
+        <option value="amenity">amenity (restaurant, clinic, school, pharmacy)</option>
+        <option value="shop">shop (bakery, supermarket)</option>
+        <option value="office">office</option>
+      </select>
+    </label>
+    <label>Business Type (OSM tag value, e.g. hotel, hospital, school)<input type="text" id="businessType" placeholder="hotel" required></label>
+    <button type="submit">Scan</button>
+  </form>
+  <div id="status"></div>
+  <div id="results"></div>
+
+  <script>
+    const form = document.getElementById('scanForm');
+    const statusEl = document.getElementById('status');
+    const resultsEl = document.getElementById('results');
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str ?? '';
+      return div.innerHTML;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      resultsEl.innerHTML = '';
+      statusEl.textContent = 'Scanning... this can take a moment (Overpass + Groq calls).';
+
+      const city = document.getElementById('city').value;
+      const key = document.getElementById('osmKey').value;
+      const value = document.getElementById('businessType').value;
+
+      try {
+        const res = await fetch('/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ city, key, value }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          statusEl.textContent = data.error || 'Something went wrong.';
+          return;
+        }
+
+        statusEl.textContent = `Found ${data.leads.length} results.`;
+
+        data.leads.forEach((lead, i) => {
+          const name = lead.tags?.name || 'Unnamed';
+          const phone = lead.tags?.phone || 'No phone listed';
+          const website = lead.tags?.website || 'No website';
+          const hook = data.outreaches[i] || 'No hook generated';
+
+          const div = document.createElement('div');
+          div.className = 'lead';
+          div.innerHTML = `
+            <h4>${escapeHtml(name)}</h4>
+            <p><strong>Phone:</strong> ${escapeHtml(phone)}</p>
+            <p><strong>Website:</strong> ${escapeHtml(website)}</p>
+            <p><strong>Hook:</strong> ${escapeHtml(hook)}</p>
+          `;
+          resultsEl.appendChild(div);
+        });
+      } catch (err) {
+        statusEl.textContent = 'Network error — please try again.';
+      }
+    });
+  </script>
+</body>
+</html>
