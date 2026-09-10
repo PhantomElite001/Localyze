@@ -1,2 +1,5 @@
 # Localyze
-An AI-powered local business outreach tool that finds nearby businesses without a web presence and automatically sends them personalized pitches via WhatsApp.
+Localyze is an AI-powered local business outreach tool that finds nearby businesses without a web presence and automatically sends them personalized pitches via WhatsApp.
+It works in three stages — discover, personalize, outreach.
+It starts by detecting your location and scanning Google Maps for nearby restaurants, hotels, and other local businesses. It then filters down to only the ones with no website but a registered phone number — your ideal targets. Each business's data — their name, rating, category, customer reviews, and location — gets fed into an AI model that writes a unique, human-sounding WhatsApp message tailored specifically to that business. Not a template, an actual personalized pitch that references real details about them. That message then gets sent automatically via the WhatsApp Business API, and any replies come back into Reachly's dashboard where you can track your entire pipeline — who was contacted, who replied, who converted.
+The result is a fully automated lead generation system that turns a two-hour prospecting session into a five-minute one.
